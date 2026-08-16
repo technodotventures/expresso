@@ -1,0 +1,50 @@
+name: User-test finding
+description: Record evidence from a developer or design-partner session.
+title: "[research] "
+labels:
+  - "type:user-research"
+body:
+  - type: input
+    id: participant
+    attributes:
+      label: Participant profile
+      description: Role and workflow type only; do not include private identity.
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current stack and glue
+      description: What do they assemble today to achieve the same outcome?
+    validations:
+      required: true
+  - type: textarea
+    id: task
+    attributes:
+      label: Synthetic task and result
+      description: Include repair rounds and diagnostic codes.
+    validations:
+      required: true
+  - type: textarea
+    id: reaction
+    attributes:
+      label: Pain, value, and objections
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Incident owner and budget owner
+    validations:
+      required: true
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Observed urgency
+      options:
+        - Critical and budgeted
+        - Useful and planned
+        - Interesting but unbudgeted
+        - Not valuable
+    validations:
+      required: true

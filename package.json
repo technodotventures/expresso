@@ -1,0 +1,73 @@
+{
+  "name": "@technodotventures/expresso",
+  "version": "0.3.2",
+  "description": "Keep your agents in check.",
+  "type": "module",
+  "bin": {
+    "expresso": "src/cli.mjs"
+  },
+  "exports": {
+    ".": "./src/index.mjs",
+    "./harness": "./src/harness/run.mjs",
+    "./provider-catalog": "./providers/catalog.json",
+    "./synthetic-providers": "./src/runtime/synthetic-providers.mjs"
+  },
+  "files": [
+    "src/",
+    "providers/",
+    "examples/",
+    "test/",
+    "docs/spec/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "SUPPORT.md"
+  ],
+  "scripts": {
+    "check": "node src/cli.mjs check examples/refund.expresso",
+    "compile": "node src/cli.mjs compile examples/refund.expresso",
+    "demo": "node src/cli.mjs demo lost-response",
+    "experiment": "node src/cli.mjs experiment experiments/tasks.json",
+    "test": "node --test test/*.test.mjs",
+    "test:watch": "node --test --watch test/*.test.mjs",
+    "test:package": "node scripts/smoke-package.mjs",
+    "build:plugin": "node scripts/build-plugin.mjs",
+    "check:plugin": "node scripts/build-plugin.mjs --check",
+    "test:plugin": "node --test test/plugin.test.mjs",
+    "verify:release-ref": "node scripts/verify-release-ref.mjs",
+    "verify": "npm test && npm run check && npm run demo && npm run experiment && npm run check:plugin && npm run test:package"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/technodotventures/expresso.git"
+  },
+  "author": {
+    "name": "Techno Ventures",
+    "url": "https://www.techno.ventures"
+  },
+  "homepage": "https://expresso.build",
+  "bugs": {
+    "url": "https://github.com/technodotventures/expresso/issues"
+  },
+  "keywords": [
+    "agents",
+    "ai-agents",
+    "autonomous-software",
+    "claude-code",
+    "codex",
+    "compiler",
+    "durable-execution",
+    "verification",
+    "workflow"
+  ],
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "refund-lost-response",
+    "surface": "expresso",
+    "prompt": "Create a workflow that asks a model to propose a refund, deterministically validates the amount and customer, then issues the refund with safe lost-response recovery.",
+    "catalog": "../providers/catalog.json",
+    "attemptFiles": [
+      "fixtures/refund.invalid.expresso",
+      "fixtures/refund.valid.expresso"
+    ]
+  }
+]

@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a reproducible parser, verifier, runtime, or harness defect.
+title: "[bug] "
+labels:
+  - "type:bug"
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Language/parser
+        - Source verifier
+        - Compiler/IR
+        - Runtime verifier
+        - Execution/journal
+        - Provider catalog
+        - Experiment harness
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: invariant
+    attributes:
+      label: Broken invariant
+      description: What semantic or runtime rule should have held?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include synthetic source, input, command, and diagnostic output.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety
+      options:
+        - label: The reproduction contains no credentials, production actions, or customer data.
+          required: true

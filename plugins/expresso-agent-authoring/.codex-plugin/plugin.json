@@ -1,0 +1,38 @@
+{
+  "name": "expresso",
+  "version": "0.3.2",
+  "description": "Author and verify checked workflows before an agent acts.",
+  "author": {
+    "name": "Techno Ventures",
+    "url": "https://www.techno.ventures"
+  },
+  "homepage": "https://expresso.build",
+  "repository": "https://github.com/technodotventures/expresso",
+  "license": "Apache-2.0",
+  "keywords": [
+    "agents",
+    "autonomous-software",
+    "compiler",
+    "durable-execution"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Expresso",
+    "shortDescription": "Author checked workflows",
+    "longDescription": "Creates readable Expresso source and checks declared validation, permission, stable action identity, and recovery before dispatch.",
+    "developerName": "Techno Ventures",
+    "category": "Productivity",
+    "capabilities": [
+      "Author Expresso workflows",
+      "Review effect boundaries",
+      "Repair compiler diagnostics"
+    ],
+    "websiteURL": "https://expresso.build",
+    "defaultPrompt": [
+      "Build a checked Expresso workflow for this task.",
+      "Review this Expresso workflow's effects and grants.",
+      "Repair these Expresso compiler diagnostics."
+    ],
+    "brandColor": "#C7A55A"
+  }
+}

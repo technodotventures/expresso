@@ -1,0 +1,40 @@
+name: Semantic proposal
+description: Propose a language, verifier, identity, recovery, or authority change.
+title: "[semantics] "
+labels:
+  - "type:semantic-proposal"
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What real workflow cannot be expressed or enforced today?
+    validations:
+      required: true
+  - type: textarea
+    id: invariant
+    attributes:
+      label: Enforced invariant
+      description: What will the compiler or runtime reject after this change?
+    validations:
+      required: true
+  - type: textarea
+    id: syntax
+    attributes:
+      label: Smallest proposed surface
+      description: Omit syntax if the change does not require it.
+      render: text
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and tradeoffs
+      description: Explain why deterministic code, a provider contract, or an existing construct is insufficient.
+    validations:
+      required: true
+  - type: textarea
+    id: falsification
+    attributes:
+      label: Falsifying test
+      description: Show the unsafe case that must fail and the valid case that must pass.
+    validations:
+      required: true

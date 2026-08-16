@@ -1,0 +1,19 @@
+{
+  "name": "expresso",
+  "version": "0.3.2",
+  "description": "Author and verify checked workflows before an agent acts.",
+  "author": {
+    "name": "Techno Ventures",
+    "url": "https://www.techno.ventures"
+  },
+  "homepage": "https://expresso.build",
+  "repository": "https://github.com/technodotventures/expresso",
+  "license": "Apache-2.0",
+  "keywords": [
+    "agents",
+    "workflow",
+    "verification",
+    "durable-execution"
+  ],
+  "skills": "./skills/"
+}

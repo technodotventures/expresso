@@ -1,0 +1,49 @@
+{
+  "catalogVersion": "1",
+  "generatedAt": "2026-07-25",
+  "operations": {
+    "ai.propose_refund": {
+      "kind": "observation",
+      "description": "Synthetic model proposes refund fields from a case.",
+      "recovery": {
+        "mode": "repeatable",
+        "evidence": {
+          "level": "developer_asserted",
+          "source": "Bundled synthetic provider used for examples and conformance tests."
+        }
+      },
+      "sensitivity": "sensitive"
+    },
+    "payments.lookup_refund": {
+      "kind": "observation",
+      "description": "Synthetic authoritative lookup by caller-supplied refund identity.",
+      "recovery": {
+        "mode": "repeatable",
+        "evidence": {
+          "level": "conformance_tested",
+          "source": "Local synthetic provider test suite."
+        }
+      },
+      "sensitivity": "sensitive"
+    },
+    "payments.refund": {
+      "kind": "action",
+      "description": "Synthetic refund action for failure-injection tests.",
+      "capability": "finance.refund",
+      "providerIdentity": {
+        "source": "workflow",
+        "field": "refund_id",
+        "transmittedAs": "providerIdentity"
+      },
+      "recovery": {
+        "mode": "reconcile",
+        "operation": "payments.lookup_refund",
+        "evidence": {
+          "level": "conformance_tested",
+          "source": "Local synthetic lost-response and reconciliation tests."
+        }
+      },
+      "sensitivity": "sensitive"
+    }
+  }
+}

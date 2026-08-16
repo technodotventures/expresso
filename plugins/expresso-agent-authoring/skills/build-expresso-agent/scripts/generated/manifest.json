@@ -1,0 +1,14 @@
+{
+  "compilerPackage": "@technodotventures/expresso",
+  "compilerVersion": "0.3.2",
+  "files": {
+    "src/compiler/compile.mjs": "e5c05e2920805a226af1fbd2511828f5f49f01885a215ba7c9401e71a29c1be2",
+    "src/core/diagnostics.mjs": "a75d23c6147f8cba01414da41cf4bb7d4ae87331d0e57bd1e46adb0ce92e6d85",
+    "src/language/parser.mjs": "6152dff747cd66c1795ceb74cc11fdf6ecc6d8d9001bb5bea7ad6c185f9bad2a",
+    "src/language/tokenizer.mjs": "331fa30668bf0e958f656946d566585be0b4d4ef83d7cdd100b79245b368ec40",
+    "src/providers/catalog.mjs": "ac93bafeb7150f7ff3826e08de94de916d87a044ff98e230a7765003c135e63e",
+    "src/verifier/provenance.mjs": "589995d3c49792cb00f062291dc64fe8dd390d78bece2619f6764e76fcc83c31",
+    "src/verifier/source-verifier.mjs": "dde30daefc82846dc2d3d9aad055294de28f822804e6af098efa086b946a5ee9",
+    "providers/catalog.json": "6a5ea9f622cb8a6cf3d16cec0dcb13b2ba4c1a7c501bb0bc72e3e29ca5ee9c8e"
+  }
+}

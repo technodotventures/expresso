@@ -1,0 +1,47 @@
+name: Provider contract evidence
+description: Add or update evidence about a provider operation.
+title: "[provider] "
+labels:
+  - "area:providers"
+body:
+  - type: input
+    id: operation
+    attributes:
+      label: Operation
+      placeholder: provider.operation
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence
+    attributes:
+      label: Evidence level
+      options:
+        - unknown
+        - inferred
+        - developer_asserted
+        - documentation_backed
+        - conformance_tested
+        - provider_verified
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and source
+      description: Include API version, operation variants, environment, date, and evidence link or test.
+    validations:
+      required: true
+  - type: textarea
+    id: failure
+    attributes:
+      label: Ambiguous-completion behavior
+      description: State what happens after provider success with a lost response.
+    validations:
+      required: true
+  - type: checkboxes
+    id: secrets
+    attributes:
+      label: Safety
+      options:
+        - label: No credentials, production identifiers, or customer data are included.
+          required: true

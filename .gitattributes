@@ -1,0 +1,3 @@
+# Keep compiler sources and generated manifests byte-stable across platforms.
+*.mjs text eol=lf
+*.json text eol=lf

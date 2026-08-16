@@ -1,0 +1,22 @@
+{
+  "name": "expresso",
+  "description": "Checked workflow authoring for consequential agent actions.",
+  "owner": {
+    "name": "Techno Ventures",
+    "url": "https://www.techno.ventures"
+  },
+  "plugins": [
+    {
+      "name": "expresso",
+      "source": "./plugins/expresso-agent-authoring",
+      "description": "Author and verify checked workflows before an agent acts",
+      "category": "development",
+      "tags": [
+        "agents",
+        "workflow",
+        "verification",
+        "durable-execution"
+      ]
+    }
+  ]
+}

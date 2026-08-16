@@ -1,0 +1,24 @@
+workflow RefundCustomer {
+  input {
+    case_id: string
+    order_id: string
+  }
+
+  grants {
+    ai.propose_refund
+    payments.refund
+  }
+
+  let proposal = observe "propose-refund" ai.propose_refund {
+    case_id: input.case_id
+    order_id: input.order_id
+  }
+
+  action "issue-refund" payments.refund {
+    identity proposal.refund_id
+    recovery idempotent_retry
+    input {
+      amount: proposal.amount
+    }
+  }
+}
