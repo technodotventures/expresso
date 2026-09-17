@@ -4,6 +4,8 @@ All notable changes to Expresso are recorded here.
 
 ## Unreleased
 
+## 0.3.4 — 2026-09-17
+
 ### Added
 
 - A three-action customer-resolution example and machine-readable demo trace
