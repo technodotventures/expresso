@@ -80,3 +80,74 @@ test("rejects unknown and incomplete command options", async () => {
     ),
   );
 });
+
+test("emits a machine-readable customer-resolution recovery trace", async () => {
+  const result = await execFileAsync(
+    process.execPath,
+    [cli, "demo", "customer-resolution", "--json"],
+  );
+  const trace = JSON.parse(result.stdout);
+
+  assert.equal(trace.scenario, "customer-resolution");
+  assert.deepEqual(trace.interruption.providerDispatches, {
+    refunds: 1,
+    confirmations: 0,
+    tickets: 0,
+  });
+  assert.equal(trace.interruption.journalOutcome, "unresolved");
+  assert.deepEqual(
+    trace.recovery.actions.map((action) => ({
+      operation: action.operation,
+      recovered: action.recovered,
+      dispatches: action.dispatches,
+    })),
+    [
+      { operation: "payments.refund", recovered: true, dispatches: 1 },
+      {
+        operation: "messages.send_confirmation",
+        recovered: false,
+        dispatches: 1,
+      },
+      { operation: "support.close_ticket", recovered: false, dispatches: 1 },
+    ],
+  );
+});
+
+test("limits machine-readable demo output to customer-resolution", async () => {
+  await assert.rejects(
+    execFileAsync(process.execPath, [cli, "demo", "lost-response", "--json"]),
+    (error) => (
+      error.code === 1
+      && /--json.*customer-resolution/.test(error.stderr)
+    ),
+  );
+});
+
+test("prints a human-readable customer-resolution demo by default", async () => {
+  const result = await execFileAsync(
+    process.execPath,
+    [cli, "demo", "customer-resolution"],
+  );
+
+  assert.match(result.stdout, /Attempt 1: refund succeeded, response was lost\./);
+  assert.match(result.stdout, /Attempt 2: refund reconciled/);
+  assert.match(
+    result.stdout,
+    /Result: Refunded once\. Customer told\. Ticket closed\./,
+  );
+  assert.doesNotMatch(result.stdout, /\n\s*\{/);
+});
+
+test("documents JSON output only for the customer-resolution demo", async () => {
+  const result = await execFileAsync(process.execPath, [cli, "--help"]);
+
+  assert.match(result.stdout, /expresso demo lost-response/);
+  assert.match(
+    result.stdout,
+    /expresso demo customer-resolution \[--json\]/,
+  );
+  assert.doesNotMatch(
+    result.stdout,
+    /demo <lost-response\|customer-resolution> \[--json\]/,
+  );
+});

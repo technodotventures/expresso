@@ -72,6 +72,18 @@ provider dispatch, one external refund, and a journal containing
 `ObservationPlanned`, `ObservationCommitted`, `ActionPlanned`, and
 `ActionCompleted`.
 
+The repository also includes a three-action customer-resolution fixture. It
+issues one synthetic refund, loses that provider reply, reconciles the existing
+effect, then sends one confirmation and closes one support ticket:
+
+```bash
+node src/cli.mjs check examples/customer-resolution.expresso
+node src/cli.mjs demo customer-resolution --json
+```
+
+The JSON trace separates the interrupted journal from external provider state,
+then reports each recovered or newly completed action and its dispatch count.
+
 ## A minimal workflow
 
 ```expresso
@@ -127,6 +139,7 @@ expresso init [directory]
 expresso check <file> [--catalog <file>] [--json]
 expresso compile <file> [--catalog <file>] [--out <file>] [--json]
 expresso demo lost-response
+expresso demo customer-resolution [--json]
 expresso experiment <tasks.json> [--model-command <executable>]
 expresso --version
 ```
@@ -134,7 +147,9 @@ expresso --version
 `check` and `compile` use `expresso/providers.json` when it exists, otherwise
 they use the provider catalog bundled with the package.
 
-`--json` emits machine-readable diagnostics intended for an AI repair loop.
+`--json` emits machine-readable diagnostics for `check` and `compile`.
+`demo customer-resolution` prints a prose trace; add `--json` for the
+machine-readable recovery trace.
 A model command receives one JSON request on standard input and must return:
 
 ```json

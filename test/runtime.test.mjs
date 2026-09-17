@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
+import { resolve } from "node:path";
 import test from "node:test";
+import { compile } from "../src/compiler/compile.mjs";
+import { parse } from "../src/language/parser.mjs";
+import { loadCatalog } from "../src/providers/catalog.mjs";
 import {
   execute,
   OutcomeUnknownError,
@@ -7,7 +11,86 @@ import {
 } from "../src/runtime/execute.mjs";
 import { MemoryJournal } from "../src/runtime/journal.mjs";
 import { createSyntheticProviders } from "../src/runtime/synthetic-providers.mjs";
-import { foundation, input, runtimeGrants } from "./helpers.mjs";
+import { fixture, foundation, input, runtimeGrants } from "./helpers.mjs";
+
+test("preserves the refund provider identity contract", async () => {
+  const catalog = await loadCatalog(resolve("providers/catalog.json"));
+
+  assert.equal(
+    catalog.operations["payments.refund"].providerIdentity.field,
+    "refund_id",
+  );
+});
+
+test("recovers one customer resolution without repeating any completed effect", async () => {
+  const source = await fixture("examples/customer-resolution.expresso");
+  const input = JSON.parse(
+    await fixture("examples/customer-resolution.input.json"),
+  );
+  const catalog = await loadCatalog(resolve("providers/catalog.json"));
+  const parsed = parse(source);
+  assert.equal(parsed.ok, true);
+  const compiled = compile(parsed.ast, catalog, { source });
+  assert.equal(compiled.executable, true);
+
+  const synthetic = createSyntheticProviders({
+    failAfterRefundOnce: true,
+    proposal: {
+      amount: 48,
+      customer_id: input.customer_id,
+      reason: "duplicate charge",
+    },
+  });
+  const journal = new MemoryJournal();
+  const request = {
+    ir: compiled.ir,
+    catalog,
+    providers: synthetic.providers,
+    input,
+    executionId: "runtime-test-customer-resolution",
+    runtimeGrants: [
+      "ai.propose_refund",
+      "payments.refund",
+      "payments.lookup_refund",
+      "messages.send_confirmation",
+      "messages.lookup_confirmation",
+      "support.close_ticket",
+      "support.lookup_ticket",
+    ],
+    journal,
+  };
+
+  await assert.rejects(() => execute(request), OutcomeUnknownError);
+  assert.deepEqual(synthetic.inspect().providerDispatches, {
+    refunds: 1,
+    confirmations: 0,
+    tickets: 0,
+  });
+
+  const result = await execute(request);
+  assert.equal(result.status, "completed");
+  assert.deepEqual(synthetic.inspect().providerDispatches, {
+    refunds: 1,
+    confirmations: 1,
+    tickets: 1,
+  });
+  assert.equal(Object.keys(synthetic.inspect().refunds).length, 1);
+  assert.equal(Object.keys(synthetic.inspect().confirmations).length, 1);
+  assert.equal(Object.keys(synthetic.inspect().tickets).length, 1);
+  assert.deepEqual(
+    journal.snapshot()
+      .filter((entry) => entry.type === "ActionCompleted")
+      .map((entry) => ({
+        operation: entry.operation,
+        recovered: entry.recovered,
+      })),
+    [
+      { operation: "payments.refund", recovered: true },
+      { operation: "messages.send_confirmation", recovered: false },
+      { operation: "support.close_ticket", recovered: false },
+    ],
+  );
+});
 
 test("reconciles a lost response without dispatching a duplicate action", async () => {
   const { catalog, compiled } = await foundation();

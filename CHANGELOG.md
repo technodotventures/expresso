@@ -4,6 +4,14 @@ All notable changes to Expresso are recorded here.
 
 ## Unreleased
 
+### Added
+
+- A three-action customer-resolution example and machine-readable demo trace
+  covering refund reconciliation, customer confirmation, and support-ticket
+  closure.
+- Synthetic message and support provider contracts with conformance coverage
+  for recovery across sequential external effects.
+
 ## 0.3.3 — 2026-09-17
 
 ### Changed
