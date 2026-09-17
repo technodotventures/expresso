@@ -9,6 +9,6 @@
     "src/providers/catalog.mjs": "ac93bafeb7150f7ff3826e08de94de916d87a044ff98e230a7765003c135e63e",
     "src/verifier/provenance.mjs": "589995d3c49792cb00f062291dc64fe8dd390d78bece2619f6764e76fcc83c31",
     "src/verifier/source-verifier.mjs": "dde30daefc82846dc2d3d9aad055294de28f822804e6af098efa086b946a5ee9",
-    "providers/catalog.json": "6a5ea9f622cb8a6cf3d16cec0dcb13b2ba4c1a7c501bb0bc72e3e29ca5ee9c8e"
+    "providers/catalog.json": "8ae97b73a0af743916828d0a2c1b545c7ea28766456c0ac027e290c559ec15bc"
   }
 }

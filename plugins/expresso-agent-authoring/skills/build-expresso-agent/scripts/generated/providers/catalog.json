@@ -1,6 +1,6 @@
 {
   "catalogVersion": "1",
-  "generatedAt": "2026-07-25",
+  "generatedAt": "2026-09-14",
   "operations": {
     "ai.propose_refund": {
       "kind": "observation",
@@ -41,6 +41,68 @@
         "evidence": {
           "level": "conformance_tested",
           "source": "Local synthetic lost-response and reconciliation tests."
+        }
+      },
+      "sensitivity": "sensitive"
+    },
+    "messages.lookup_confirmation": {
+      "kind": "observation",
+      "description": "Synthetic authoritative lookup for a customer confirmation.",
+      "recovery": {
+        "mode": "repeatable",
+        "evidence": {
+          "level": "conformance_tested",
+          "source": "Local synthetic customer-resolution test suite."
+        }
+      },
+      "sensitivity": "sensitive"
+    },
+    "messages.send_confirmation": {
+      "kind": "action",
+      "description": "Synthetic customer-confirmation action for conformance tests.",
+      "capability": "messages.send",
+      "providerIdentity": {
+        "source": "workflow",
+        "field": "case_id",
+        "transmittedAs": "providerIdentity"
+      },
+      "recovery": {
+        "mode": "reconcile",
+        "operation": "messages.lookup_confirmation",
+        "evidence": {
+          "level": "conformance_tested",
+          "source": "Local synthetic customer-resolution test suite."
+        }
+      },
+      "sensitivity": "sensitive"
+    },
+    "support.lookup_ticket": {
+      "kind": "observation",
+      "description": "Synthetic authoritative lookup for a support ticket.",
+      "recovery": {
+        "mode": "repeatable",
+        "evidence": {
+          "level": "conformance_tested",
+          "source": "Local synthetic customer-resolution test suite."
+        }
+      },
+      "sensitivity": "sensitive"
+    },
+    "support.close_ticket": {
+      "kind": "action",
+      "description": "Synthetic support-ticket close action for conformance tests.",
+      "capability": "support.close",
+      "providerIdentity": {
+        "source": "workflow",
+        "field": "case_id",
+        "transmittedAs": "providerIdentity"
+      },
+      "recovery": {
+        "mode": "reconcile",
+        "operation": "support.lookup_ticket",
+        "evidence": {
+          "level": "conformance_tested",
+          "source": "Local synthetic customer-resolution test suite."
         }
       },
       "sensitivity": "sensitive"

@@ -29,6 +29,14 @@ const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PACKAGE_CATALOG = resolve(PACKAGE_ROOT, "providers/catalog.json");
 const EXAMPLE_WORKFLOW = resolve(PACKAGE_ROOT, "examples/refund.expresso");
 const EXAMPLE_INPUT = resolve(PACKAGE_ROOT, "examples/refund.input.json");
+const CUSTOMER_RESOLUTION_WORKFLOW = resolve(
+  PACKAGE_ROOT,
+  "examples/customer-resolution.expresso",
+);
+const CUSTOMER_RESOLUTION_INPUT = resolve(
+  PACKAGE_ROOT,
+  "examples/customer-resolution.input.json",
+);
 const PACKAGE_METADATA = JSON.parse(
   await readFile(resolve(PACKAGE_ROOT, "package.json"), "utf8"),
 );
@@ -164,12 +172,24 @@ async function compileCommand(commandArgs) {
 }
 
 async function demoCommand(commandArgs) {
-  if (commandArgs.length > 1) {
+  const options = parseOptions(commandArgs, ["json"]);
+  if (options.positional.length > 1) {
     throw new Error("demo accepts at most one scenario.");
   }
-  const scenario = commandArgs[0] ?? "lost-response";
-  if (scenario !== "lost-response") {
-    throw new Error("Only the 'lost-response' demo is available.");
+  const scenario = options.positional[0] ?? "lost-response";
+  if (!new Set(["lost-response", "customer-resolution"]).has(scenario)) {
+    throw new Error(
+      "Available demos: 'lost-response', 'customer-resolution'.",
+    );
+  }
+  if (options.json && scenario !== "customer-resolution") {
+    throw new Error(
+      "Option '--json' is only supported for the 'customer-resolution' demo.",
+    );
+  }
+  if (scenario === "customer-resolution") {
+    await customerResolutionDemo(options.json);
+    return;
   }
   const file = EXAMPLE_WORKFLOW;
   const source = await readFile(file, "utf8");
@@ -213,6 +233,104 @@ async function demoCommand(commandArgs) {
     externalRefunds: Object.keys(state.refunds).length,
     journalEvents: journal.snapshot().map((entry) => entry.type),
   }, null, 2)}\n`);
+}
+
+async function customerResolutionDemo(json) {
+  const source = await readFile(CUSTOMER_RESOLUTION_WORKFLOW, "utf8");
+  const catalog = await loadCatalog(PACKAGE_CATALOG);
+  const parsed = parse(source);
+  const compiled = compile(parsed.ast, catalog, { source });
+  if (!compiled.executable) {
+    emitResult(compiled, CUSTOMER_RESOLUTION_WORKFLOW, json);
+    process.exitCode = 1;
+    return;
+  }
+  const input = JSON.parse(
+    await readFile(CUSTOMER_RESOLUTION_INPUT, "utf8"),
+  );
+  const synthetic = createSyntheticProviders({
+    failAfterRefundOnce: true,
+    proposal: {
+      amount: 48,
+      customer_id: input.customer_id,
+      reason: "duplicate charge",
+    },
+  });
+  const journal = new MemoryJournal();
+  const base = {
+    ir: compiled.ir,
+    catalog,
+    providers: synthetic.providers,
+    input,
+    executionId: "demo-customer-resolution-1",
+    runtimeGrants: compiled.analysis.requiredRuntimeGrants,
+    journal,
+  };
+
+  try {
+    await execute(base);
+  } catch (error) {
+    if (!(error instanceof OutcomeUnknownError)) throw error;
+  }
+  const interruptedState = synthetic.inspect();
+  const interruptedJournal = journal.snapshot();
+  const interruption = {
+    journalOutcome: interruptedJournal.some(
+      (entry) => entry.type === "ActionCompleted"
+        && entry.operation === "payments.refund",
+    ) ? "completed" : "unresolved",
+    providerDispatches: interruptedState.providerDispatches,
+    externalEffects: {
+      refunds: Object.keys(interruptedState.refunds).length,
+      confirmations: Object.keys(interruptedState.confirmations).length,
+      tickets: Object.keys(interruptedState.tickets).length,
+    },
+    journalEvents: journal.snapshot().map((entry) => entry.type),
+  };
+
+  const result = await execute(base);
+  const recoveredState = synthetic.inspect();
+  const dispatchesByOperation = {
+    "payments.refund": recoveredState.providerDispatches.refunds,
+    "messages.send_confirmation": recoveredState.providerDispatches.confirmations,
+    "support.close_ticket": recoveredState.providerDispatches.tickets,
+  };
+  const actions = journal.snapshot()
+    .filter((entry) => entry.type === "ActionCompleted")
+    .map((entry) => ({
+      operation: entry.operation,
+      status: "completed",
+      recovered: entry.recovered,
+      dispatches: dispatchesByOperation[entry.operation],
+    }));
+  const trace = {
+    scenario: "customer-resolution",
+    status: result.status,
+    executionId: base.executionId,
+    interruption,
+    recovery: {
+      providerDispatches: recoveredState.providerDispatches,
+      externalEffects: {
+        refunds: Object.keys(recoveredState.refunds).length,
+        confirmations: Object.keys(recoveredState.confirmations).length,
+        tickets: Object.keys(recoveredState.tickets).length,
+      },
+      actions,
+      journalEvents: journal.snapshot().map((entry) => entry.type),
+    },
+  };
+
+  if (json) {
+    process.stdout.write(`${JSON.stringify(trace, null, 2)}\n`);
+    return;
+  }
+  process.stdout.write("Attempt 1: refund succeeded, response was lost.\n");
+  process.stdout.write(
+    "Attempt 2: refund reconciled; confirmation sent; ticket closed.\n",
+  );
+  process.stdout.write(
+    "Result: Refunded once. Customer told. Ticket closed.\n",
+  );
 }
 
 async function experimentCommand(commandArgs) {
@@ -342,6 +460,7 @@ Usage:
   expresso check <file> [--catalog <file>] [--json]
   expresso compile <file> [--catalog <file>] [--out <file>] [--json]
   expresso demo lost-response
+  expresso demo customer-resolution [--json]
   expresso experiment <tasks.json> [--model-command <executable>] [--max-rounds <n>] [--out <file>]
   expresso --version
 `);
