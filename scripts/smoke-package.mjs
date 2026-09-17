@@ -37,7 +37,7 @@ try {
   );
   const [metadata] = JSON.parse(packed.stdout);
   assert.equal(metadata.name, "@technodotventures/expresso");
-  assert.equal(metadata.version, "0.3.3");
+  assert.equal(metadata.version, "0.3.4");
   assert.ok(metadata.files.some((file) => file.path === "src/cli.mjs"));
   assert.ok(metadata.files.some((file) => file.path === "providers/catalog.json"));
   assert.ok(metadata.files.some((file) => file.path === "README.md"));

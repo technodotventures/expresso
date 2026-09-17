@@ -37,7 +37,7 @@ test("plugin metadata and generated compiler version stay aligned", async () => 
   );
 
   assert.equal(plugin.name, "expresso");
-  assert.equal(plugin.version, "0.3.3");
+  assert.equal(plugin.version, "0.3.4");
   assert.equal(plugin.homepage, "https://expresso.build");
   assert.equal(plugin.author.url, "https://www.techno.ventures");
   assert.ok(plugin.interface.displayName.length <= 30);
