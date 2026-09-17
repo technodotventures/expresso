@@ -4,6 +4,15 @@ All notable changes to Expresso are recorded here.
 
 ## Unreleased
 
+## 0.3.3 — 2026-09-17
+
+### Changed
+
+- Republished as a new version after the previous `0.3.0`–`0.3.2` releases were
+  unpublished during the security clean-up. The registry permanently retires
+  published version numbers, so a new version is required to republish; the
+  package contents are otherwise unchanged from `0.3.2`.
+
 ## 0.3.2 — 2026-08-01
 
 ### Added

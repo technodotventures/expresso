@@ -20,7 +20,7 @@ worth.
 
 ## Current release
 
-Version `0.3.2` is the current public release of the compiler, verifier, runtime
+Version `0.3.3` is the current public release of the compiler, verifier, runtime
 core, CLI, examples, and Codex and Claude Code authoring plugins. The package is
 available as
 [`@technodotventures/expresso`](https://www.npmjs.com/package/@technodotventures/expresso),
@@ -150,7 +150,7 @@ The repository includes a self-contained Codex authoring plugin. A tagged
 release should be installed with a pinned marketplace reference:
 
 ```bash
-codex plugin marketplace add technodotventures/expresso --ref v0.3.2
+codex plugin marketplace add technodotventures/expresso --ref v0.3.3
 codex plugin add expresso@expresso
 ```
 
