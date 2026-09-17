@@ -11,7 +11,7 @@ const cli = resolve("src/cli.mjs");
 
 test("reports the package version", async () => {
   const result = await execFileAsync(process.execPath, [cli, "--version"]);
-  assert.equal(result.stdout.trim(), "0.3.2");
+  assert.equal(result.stdout.trim(), "0.3.3");
 });
 
 test("initializes and checks a workflow in a blank project", async (t) => {

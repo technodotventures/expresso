@@ -1,6 +1,6 @@
 {
   "compilerPackage": "@technodotventures/expresso",
-  "compilerVersion": "0.3.2",
+  "compilerVersion": "0.3.3",
   "files": {
     "src/compiler/compile.mjs": "e5c05e2920805a226af1fbd2511828f5f49f01885a215ba7c9401e71a29c1be2",
     "src/core/diagnostics.mjs": "a75d23c6147f8cba01414da41cf4bb7d4ae87331d0e57bd1e46adb0ce92e6d85",

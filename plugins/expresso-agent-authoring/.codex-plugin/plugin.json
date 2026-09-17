@@ -1,6 +1,6 @@
 {
   "name": "expresso",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Author and verify checked workflows before an agent acts.",
   "author": {
     "name": "Techno Ventures",
