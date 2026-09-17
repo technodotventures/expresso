@@ -112,6 +112,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment: npm
+    # id-token write is required because this package declares
+    # publishConfig.provenance = true, and npm generates the provenance
+    # attestation from the workflow OIDC token.
+    #
+    # This job runs NO repository code: there is no checkout, and the only
+    # inputs are the pinned actions (full SHAs), a run-scoped artifact whose
+    # SHA-256 is verified, and the operator's literal confirmation string.
+    # The OIDC token therefore cannot be reached by repository or dependency
+    # code, which was the original objection to granting this permission.
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
@@ -139,4 +151,3 @@ jobs:
           --registry=https://registry.npmjs.org
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: "false"
