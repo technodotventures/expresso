@@ -38,9 +38,8 @@ At runtime:
 2. Replay or commit observations.
 3. execute deterministic requirements.
 4. evaluate and freeze action identities and input in `ActionPlanned`.
-5. dispatch through a trusted provider handler.
-6. record dispatch before calling the provider, then append completion, failure,
-   or an unknown outcome with an explicit reason.
+5. record dispatch, then call the trusted provider handler.
+6. append completion, failure, or an unknown outcome with an explicit reason.
 7. on resume, recover from the frozen plan.
 
 ## Journal state machine
