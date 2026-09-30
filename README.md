@@ -69,8 +69,8 @@ npx @technodotventures/expresso check expresso/refund.expresso
 `init` creates a checked example and a local provider catalog in `expresso/`. It
 will not overwrite either file. The lost-response demo should report one
 provider dispatch, one external refund, and a journal containing
-`ObservationPlanned`, `ObservationCommitted`, `ActionPlanned`, and
-`ActionCompleted`.
+`ObservationPlanned`, `ObservationCommitted`, `ActionPlanned`,
+`ActionDispatched`, `ActionOutcomeUnknown`, and `ActionCompleted`.
 
 The repository also includes a three-action customer-resolution fixture. It
 issues one synthetic refund, loses that provider reply, reconciles the existing
