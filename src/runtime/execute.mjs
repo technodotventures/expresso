@@ -13,7 +13,12 @@ export class RuntimeError extends Error {
 
 export class OutcomeUnknownError extends RuntimeError {
   constructor(message = "Provider outcome is unknown.") {
-    super("R_OUTCOME_UNKNOWN", message);
+    super(
+      "R_OUTCOME_UNKNOWN",
+      typeof message === "string" && message.trim()
+        ? message
+        : "Provider outcome is unknown.",
+    );
     this.name = "OutcomeUnknownError";
   }
 }
@@ -50,17 +55,17 @@ export async function execute({
   for (const step of ir.steps) {
     if (step.kind === "observe") {
       const structuralIdentity = `${executionId}/${step.structuralSite}`;
-      const committed = journal.find("ObservationCommitted", structuralIdentity);
+      const committed = await journal.find("ObservationCommitted", structuralIdentity);
       if (committed) {
         environment[step.bind] = committed.output;
         continue;
       }
       const evaluatedInput = evaluate(step.input, environment);
-      let planned = journal.find("ObservationPlanned", structuralIdentity);
+      let planned = await journal.find("ObservationPlanned", structuralIdentity);
       const isRecovery = Boolean(planned);
       const recovery = catalog.operations[step.operation].recovery.mode;
       if (!planned) {
-        planned = journal.append({
+        planned = await journal.append({
           type: "ObservationPlanned",
           structuralIdentity,
           operation: step.operation,
@@ -89,7 +94,7 @@ export async function execute({
         executionId,
         structuralIdentity,
       });
-      journal.append({
+      await journal.append({
         type: "ObservationCommitted",
         structuralIdentity,
         operation: step.operation,
@@ -128,7 +133,7 @@ export async function execute({
     status: "completed",
     executionId,
     values: structuredClone(environment),
-    journal: journal.snapshot(),
+    journal: await journal.snapshot(),
   };
 }
 
@@ -141,16 +146,16 @@ async function executeAction({
   journal,
 }) {
   const structuralIdentity = `${executionId}/${step.structuralSite}`;
-  const completed = journal.find("ActionCompleted", structuralIdentity);
+  const completed = await journal.find("ActionCompleted", structuralIdentity);
   if (completed) return completed.output;
 
   const evaluatedIdentity = evaluate(step.providerIdentity, environment);
   const evaluatedInput = evaluate(step.input, environment);
-  let planned = journal.find("ActionPlanned", structuralIdentity);
+  let planned = await journal.find("ActionPlanned", structuralIdentity);
   const isRecovery = Boolean(planned);
 
   if (!planned) {
-    planned = journal.append({
+    planned = await journal.append({
       type: "ActionPlanned",
       structuralIdentity,
       operation: step.operation,
@@ -188,24 +193,40 @@ async function executeAction({
 
   if (isRecovery) {
     if (step.recovery === "manual" || step.recovery === "unknown") {
+      const unknown = await recordUnknownOutcome(
+        journal,
+        planned,
+        structuralIdentity,
+      );
       throw new RuntimeError(
         "R201_MANUAL_RECOVERY",
         `Action '${step.label}' requires manual recovery.`,
+        { reason: unknown.message },
       );
     }
     if (step.recovery === "reconcile") {
       const recoveryOperation = catalog.operations[step.operation].recovery.operation;
       const reconcile = providerHandler(providers, recoveryOperation);
-      const recovered = await reconcile({
-        provider_identity: planned.providerIdentity,
-        structural_identity: structuralIdentity,
-        original_input: planned.input,
-      }, {
-        executionId,
-        structuralIdentity: `${structuralIdentity}/reconcile`,
-      });
-      if (recovered?.found) {
-        journal.append({
+      let recovered;
+      try {
+        recovered = await reconcile({
+          provider_identity: planned.providerIdentity,
+          structural_identity: structuralIdentity,
+          original_input: planned.input,
+        }, {
+          executionId,
+          structuralIdentity: `${structuralIdentity}/reconcile`,
+        });
+      } catch {
+        throw await recordUnknownOutcome(
+          journal,
+          planned,
+          structuralIdentity,
+          `Reconciliation '${recoveryOperation}' did not establish the action's outcome.`,
+        );
+      }
+      if (recovered?.found === true) {
+        await journal.append({
           type: "ActionCompleted",
           structuralIdentity,
           operation: step.operation,
@@ -215,28 +236,39 @@ async function executeAction({
         });
         return recovered.result;
       }
+      if (recovered?.found !== false) {
+        throw await recordUnknownOutcome(
+          journal,
+          planned,
+          structuralIdentity,
+          typeof recovered?.reason === "string" && recovered.reason.trim()
+            ? recovered.reason
+            : `Reconciliation '${recoveryOperation}' returned no authoritative outcome.`,
+        );
+      }
     }
   }
 
   const handler = providerHandler(providers, step.operation);
+  await journal.append({
+    type: "ActionDispatched",
+    structuralIdentity,
+    operation: step.operation,
+    providerIdentity: planned.providerIdentity,
+    recovery: planned.recovery,
+  });
+  let output;
   try {
-    const output = await handler(structuredClone(planned.input), {
+    output = await handler(structuredClone(planned.input), {
       executionId,
       structuralIdentity,
       providerIdentity: planned.providerIdentity,
     });
-    journal.append({
-      type: "ActionCompleted",
-      structuralIdentity,
-      operation: step.operation,
-      providerIdentity: planned.providerIdentity,
-      recovered: false,
-      output,
-    });
-    return output;
   } catch (error) {
-    if (error instanceof OutcomeUnknownError) throw error;
-    journal.append({
+    if (error instanceof OutcomeUnknownError) {
+      throw await recordUnknownOutcome(journal, planned, structuralIdentity, error.message);
+    }
+    await journal.append({
       type: "ActionFailed",
       structuralIdentity,
       operation: step.operation,
@@ -245,6 +277,43 @@ async function executeAction({
     });
     throw error;
   }
+  try {
+    await journal.append({
+      type: "ActionCompleted",
+      structuralIdentity,
+      operation: step.operation,
+      providerIdentity: planned.providerIdentity,
+      recovered: false,
+      output,
+    });
+  } catch {
+    throw await recordUnknownOutcome(
+      journal,
+      planned,
+      structuralIdentity,
+      `Action '${step.label}' returned, but its journal completion was not confirmed.`,
+    );
+  }
+  return output;
+}
+
+async function recordUnknownOutcome(journal, planned, structuralIdentity, reason) {
+  const previous = await journal.find("ActionOutcomeUnknown", structuralIdentity);
+  const error = new OutcomeUnknownError(
+    reason ?? previous?.reason
+      ?? `Action '${planned.operation}' has an unconfirmed dispatch and requires manual recovery.`,
+  );
+  if (previous?.reason !== error.message) {
+    await journal.append({
+      type: "ActionOutcomeUnknown",
+      structuralIdentity,
+      operation: planned.operation,
+      providerIdentity: planned.providerIdentity,
+      recovery: planned.recovery,
+      reason: error.message,
+    });
+  }
+  return error;
 }
 
 function providerHandler(providers, operation) {
