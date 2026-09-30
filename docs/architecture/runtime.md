@@ -39,7 +39,8 @@ At runtime:
 3. execute deterministic requirements.
 4. evaluate and freeze action identities and input in `ActionPlanned`.
 5. dispatch through a trusted provider handler.
-6. append completion, failure, or leave the plan pending on unknown outcome.
+6. record dispatch before calling the provider, then append completion, failure,
+   or an unknown outcome with an explicit reason.
 7. on resume, recover from the frozen plan.
 
 ## Journal state machine
@@ -50,9 +51,10 @@ Observation
                               \-> pending -> repeat/manual
 
 Action
-  absent -> ActionPlanned -> ActionCompleted
-                         \-> ActionFailed
-                         \-> pending/unknown -> reconcile/retry/manual
+  absent -> ActionPlanned -> ActionDispatched -> ActionCompleted
+                                            \-> ActionFailed
+                                            \-> ActionOutcomeUnknown (reason required)
+                                                -> reconcile/retry/manual
 ```
 
 Planning occurs before dispatch. Observation input and recovery, plus action
@@ -61,6 +63,12 @@ provider identity, input, and recovery, are immutable.
 The in-memory journal is deterministic and testable but not crash-safe. A
 production journal needs transactional append, durability, integrity controls,
 secret redaction, and retention policy.
+
+Host journals implement `find`, `append`, and `snapshot`; these methods may
+return promises. The runtime awaits each write before proceeding, so `append`
+must resolve only after the entry is durably committed. A dispatch record that
+cannot be written prevents the provider call. A completion write failure is an
+unknown outcome, not evidence that the provider failed.
 
 ## Recovery
 
@@ -71,6 +79,13 @@ For a pending action:
   completion when found;
 - `manual` stops;
 - `unknown` never reaches execution because load verification blocks it.
+
+Reconciliation must return an explicit `found: true` or `found: false`.
+Only an authoritative negative permits a new dispatch. A missing or malformed
+reply, or a failed query, records `ActionOutcomeUnknown` and stops; it never
+silently becomes a negative. The reason survives in the journal, including
+when a manual-recovery action stops a later resume. Repeated stops with the
+same reason do not append duplicate unknown entries.
 
 The synthetic refund provider deliberately performs the action and then loses
 its response. Resume performs authoritative lookup and completes without a
