@@ -118,6 +118,8 @@ test("reconciles a lost response without dispatching a duplicate action", async 
       "ObservationPlanned",
       "ObservationCommitted",
       "ActionPlanned",
+      "ActionDispatched",
+      "ActionOutcomeUnknown",
       "ActionCompleted",
     ],
   );
